@@ -7,7 +7,7 @@ This guide walks through setting up the Jaydai platform on a single Azure VM wit
 Before starting, you need:
 - An Azure subscription with Owner or Contributor access
 - Azure CLI (`az`) installed on your machine
-- A domain name (e.g., `nmrk-jayd.ai`) with DNS management access
+- A domain name (e.g., `nmrk.jayd.ai`) with DNS management access
 
 ---
 
@@ -56,19 +56,22 @@ az vm open-port --resource-group rg-nmrk-jaydai-prod --name vm-jaydai --port 443
 
 ### 1.4 Create Azure AI Services
 
+> **Note:** AI Services must be in `swedencentral` — gpt-4o-mini is not available in northeurope.
+> This is fine: the VM calls the AI endpoint over HTTPS (cross-region, ~10ms extra latency).
+
 ```bash
-# Create the AI resource
+# Create the AI resource (in swedencentral, NOT northeurope)
 az cognitiveservices account create \
-  --name jaydai-ai-resource \
+  --name nmrk-jaydai-ai-swe \
   --resource-group rg-nmrk-jaydai-prod \
   --kind AIServices \
   --sku S0 \
-  --location northeurope \
-  --custom-domain jaydai-ai-resource
+  --location swedencentral \
+  --custom-domain nmrk-jaydai-ai-swe
 
 # Deploy gpt-4o-mini model
 az cognitiveservices account deployment create \
-  --name jaydai-ai-resource \
+  --name nmrk-jaydai-ai-swe \
   --resource-group rg-nmrk-jaydai-prod \
   --deployment-name gpt-4o-mini \
   --model-name gpt-4o-mini \
@@ -79,26 +82,26 @@ az cognitiveservices account deployment create \
 
 # Get the endpoint and key (save these for .env)
 az cognitiveservices account show \
-  --name jaydai-ai-resource \
+  --name nmrk-jaydai-ai-swe \
   --resource-group rg-nmrk-jaydai-prod \
   --query "properties.endpoint" -o tsv
 
 az cognitiveservices account keys list \
-  --name jaydai-ai-resource \
+  --name nmrk-jaydai-ai-swe \
   --resource-group rg-nmrk-jaydai-prod \
   --query "key1" -o tsv
 ```
 
 ### 1.5 Create Entra ID App Registration
 
-Since all apps are served on one domain (`nmrk-jayd.ai`), you only need **one** App Registration.
+Since all apps are served on one domain (`nmrk.jayd.ai`), you only need **one** App Registration.
 
 ```bash
 # Create the app registration
 az ad app create \
   --display-name "Jaydai Platform" \
   --sign-in-audience AzureADMyOrg \
-  --web-redirect-uris "https://nmrk-jayd.ai" "http://localhost:3000"
+  --web-redirect-uris "https://nmrk.jayd.ai" "http://localhost:3000"
 
 # Note the appId from the output — this is your AZURE_CLIENT_ID
 
@@ -117,16 +120,15 @@ az ad app permission admin-consent --id <appId>
 
 ## Step 2: Configure DNS
 
-Point your domain to the VM's public IP:
+In your DNS manager for `jayd.ai`, add an A record for the `nmrk` subdomain:
 
-| Type | Name | Value |
-|------|------|-------|
-| A    | @    | `<VM_PUBLIC_IP>` |
-| A    | www  | `<VM_PUBLIC_IP>` |
+| Type | Name   | Value |
+|------|--------|-------|
+| A    | `nmrk` | `<VM_PUBLIC_IP>` |
 
-Wait for DNS propagation (usually 5-15 minutes):
+Wait for DNS propagation (usually 1-15 minutes):
 ```bash
-dig nmrk-jayd.ai +short
+dig nmrk.jayd.ai +short
 ```
 
 ---
@@ -193,7 +195,7 @@ nano .env
 ```
 
 Fill in all values:
-- `DOMAIN=nmrk-jayd.ai`
+- `DOMAIN=nmrk.jayd.ai`
 - `AZURE_TENANT_ID=<from az account show>`
 - `AZURE_CLIENT_ID=<from Step 1.5>`
 - `AZURE_AI_ENDPOINT=<from Step 1.4>`
@@ -220,7 +222,7 @@ docker run --rm \
   --email $(grep LETSENCRYPT_EMAIL .env | cut -d= -f2) \
   --agree-tos \
   --no-eff-email \
-  -d nmrk-jayd.ai
+  -d nmrk.jayd.ai
 ```
 
 ### 4.4 Build the static apps
@@ -253,8 +255,8 @@ If Power Automate is in scope:
 
 1. Import the Power Automate solution into the client's Power Platform environment
 2. Update the environment variables in the solution:
-   - `jdy_CU5_FUNCTION_URL` → `https://nmrk-jayd.ai/api/cu5`
-   - `jdy_CU1_FUNCTION_URL` → `https://nmrk-jayd.ai/api/cu1`
+   - `jdy_CU5_FUNCTION_URL` → `https://nmrk.jayd.ai/api/cu5`
+   - `jdy_CU1_FUNCTION_URL` → `https://nmrk.jayd.ai/api/cu1`
    - `jdy_CU5_FUNCTION_KEY` → the `API_KEY` value from your `.env`
    - `jdy_CU1_FUNCTION_KEY` → same `API_KEY`
 3. Test the flows by triggering them manually
@@ -309,7 +311,7 @@ df -h /
 ## Architecture Summary
 
 ```
-nmrk-jayd.ai (public IP)
+nmrk.jayd.ai (public IP)
 ├── nginx (:443)
 │   ├── /                → Hub (static)
 │   ├── /dashboard/      → KPI Dashboard (static)

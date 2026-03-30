@@ -20,7 +20,7 @@ fi
 
 set -a; source "$ENV_FILE"; set +a
 
-DOMAIN="${DOMAIN:-nmrk-jayd.ai}"
+DOMAIN="${DOMAIN:-nmrk.jayd.ai}"
 BASE="https://$DOMAIN"
 
 echo -e "\n${BLUE}━━━ Syncing environment for VM deployment ━━━${NC}\n"

@@ -44,16 +44,16 @@ Open each URL in a browser and confirm the page loads:
 
 | # | URL | Expected |
 |---|-----|----------|
-| 1 | `https://nmrk-jayd.ai/` | Hub — navigation portal with links to all apps |
-| 2 | `https://nmrk-jayd.ai/dashboard/` | KPI Dashboard — charts and data tables |
-| 3 | `https://nmrk-jayd.ai/commercialisation/` | Carte de Commercialisation — Leaflet map |
-| 4 | `https://nmrk-jayd.ai/transactions/` | Carte des Transactions — Leaflet map |
-| 5 | `https://nmrk-jayd.ai/offre-retail/` | Carte Offre Retail — Leaflet map |
-| 6 | `https://nmrk-jayd.ai/visites/` | Planning de Visites — Leaflet map |
-| 7 | `https://nmrk-jayd.ai/comparables/` | Comparables — Leaflet map with Excel import |
-| 8 | `https://nmrk-jayd.ai/proprietaire/` | Recherche Propriétaire — search form |
-| 9 | `https://nmrk-jayd.ai/encarts/` | Encarts Diffusion — ad placement |
-| 10 | `https://nmrk-jayd.ai/graphistes/` | Feuilles Temps Graphistes — timesheet |
+| 1 | `https://nmrk.jayd.ai/` | Hub — navigation portal with links to all apps |
+| 2 | `https://nmrk.jayd.ai/dashboard/` | KPI Dashboard — charts and data tables |
+| 3 | `https://nmrk.jayd.ai/commercialisation/` | Carte de Commercialisation — Leaflet map |
+| 4 | `https://nmrk.jayd.ai/transactions/` | Carte des Transactions — Leaflet map |
+| 5 | `https://nmrk.jayd.ai/offre-retail/` | Carte Offre Retail — Leaflet map |
+| 6 | `https://nmrk.jayd.ai/visites/` | Planning de Visites — Leaflet map |
+| 7 | `https://nmrk.jayd.ai/comparables/` | Comparables — Leaflet map with Excel import |
+| 8 | `https://nmrk.jayd.ai/proprietaire/` | Recherche Propriétaire — search form |
+| 9 | `https://nmrk.jayd.ai/encarts/` | Encarts Diffusion — ad placement |
+| 10 | `https://nmrk.jayd.ai/graphistes/` | Feuilles Temps Graphistes — timesheet |
 
 **What to check:**
 - [ ] Page loads without 404 or blank screen
@@ -65,14 +65,14 @@ Open each URL in a browser and confirm the page loads:
 
 ## Phase 3: Test MSAL Authentication (5 min)
 
-1. Open `https://nmrk-jayd.ai/` in a browser
+1. Open `https://nmrk.jayd.ai/` in a browser
 2. You should see a "Sign in" button or be redirected to Microsoft login
 3. Sign in with a user from the configured Azure AD tenant
 4. After login, you should be redirected back to the app
 5. Verify that user profile information appears (name, email)
 
 **Troubleshooting:**
-- If login fails with "redirect URI mismatch": check that the App Registration's redirect URI is exactly `https://nmrk-jayd.ai`
+- If login fails with "redirect URI mismatch": check that the App Registration's redirect URI is exactly `https://nmrk.jayd.ai`
 - If "AADSTS50011": the app registration needs the redirect URI added
 - Open browser DevTools → Console to see MSAL error messages
 
@@ -84,9 +84,9 @@ Check that all 3 agents are running:
 
 ```bash
 # From your machine (or the VM):
-curl -s https://nmrk-jayd.ai/api/cu5/version | jq
-curl -s https://nmrk-jayd.ai/api/cu1/version | jq
-curl -s https://nmrk-jayd.ai/api/cu4/version | jq
+curl -s https://nmrk.jayd.ai/api/cu5/version | jq
+curl -s https://nmrk.jayd.ai/api/cu1/version | jq
+curl -s https://nmrk.jayd.ai/api/cu4/version | jq
 ```
 
 Expected response for each:
@@ -108,7 +108,7 @@ CU5 scrapes Business Immo articles and analyzes them with AI.
 
 ```bash
 # Start a scrape (replace YOUR_API_KEY with the API_KEY from .env)
-curl -s -X POST https://nmrk-jayd.ai/api/cu5/start-scrape \
+curl -s -X POST https://nmrk.jayd.ai/api/cu5/start-scrape \
   -H "x-api-key: YOUR_API_KEY" | jq
 
 # Response:
@@ -117,7 +117,7 @@ curl -s -X POST https://nmrk-jayd.ai/api/cu5/start-scrape \
 
 ```bash
 # Poll for results (replace JOB_ID)
-curl -s "https://nmrk-jayd.ai/api/cu5/scrape-results?job_id=JOB_ID" \
+curl -s "https://nmrk.jayd.ai/api/cu5/scrape-results?job_id=JOB_ID" \
   -H "x-api-key: YOUR_API_KEY" | jq
 
 # While running: {"status": "running", "job_id": "..."}
@@ -144,11 +144,11 @@ CU1 scrapes articles, classifies them as transactions, and generates an XLSX.
 
 ```bash
 # Start
-curl -s -X POST https://nmrk-jayd.ai/api/cu1/start-scrape \
+curl -s -X POST https://nmrk.jayd.ai/api/cu1/start-scrape \
   -H "x-api-key: YOUR_API_KEY" | jq
 
 # Poll (same pattern)
-curl -s "https://nmrk-jayd.ai/api/cu1/scrape-results?job_id=JOB_ID" \
+curl -s "https://nmrk.jayd.ai/api/cu1/scrape-results?job_id=JOB_ID" \
   -H "x-api-key: YOUR_API_KEY" | jq
 ```
 
@@ -158,7 +158,7 @@ curl -s "https://nmrk-jayd.ai/api/cu1/scrape-results?job_id=JOB_ID" \
 - [ ] Decode the base64 to verify the Excel opens correctly:
   ```bash
   # Extract and save the Excel
-  curl -s "https://nmrk-jayd.ai/api/cu1/scrape-results?job_id=JOB_ID" \
+  curl -s "https://nmrk.jayd.ai/api/cu1/scrape-results?job_id=JOB_ID" \
     -H "x-api-key: YOUR_API_KEY" \
     | jq -r '.xlsx_base64' | base64 -d > test_output.xlsx
   ```
@@ -171,13 +171,13 @@ CU4 looks up property owners on La Place de l'Immobilier.
 
 ```bash
 # Start a lookup
-curl -s -X POST https://nmrk-jayd.ai/api/cu4/start-lookup \
+curl -s -X POST https://nmrk.jayd.ai/api/cu4/start-lookup \
   -H "x-api-key: YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"addresses": ["12 rue de la Paix, 75002 Paris"]}' | jq
 
 # Poll
-curl -s "https://nmrk-jayd.ai/api/cu4/lookup-results?job_id=JOB_ID" \
+curl -s "https://nmrk.jayd.ai/api/cu4/lookup-results?job_id=JOB_ID" \
   -H "x-api-key: YOUR_API_KEY" | jq
 ```
 
@@ -187,7 +187,7 @@ curl -s "https://nmrk-jayd.ai/api/cu4/lookup-results?job_id=JOB_ID" \
 - [ ] `xlsx_base64` present (Excel report generated)
 
 **Also test from the frontend:**
-1. Go to `https://nmrk-jayd.ai/proprietaire/`
+1. Go to `https://nmrk.jayd.ai/proprietaire/`
 2. Sign in with MSAL
 3. Enter an address and click search
 4. Verify results appear and Excel download works
@@ -216,7 +216,7 @@ docker compose exec cu5-agent curl -s -X POST http://localhost:8000/start-scrape
 If Power Automate flows are configured:
 
 1. Open the Power Automate flow for CU5 newsletter
-2. Update the HTTP action URL to `https://nmrk-jayd.ai/api/cu5/start-scrape`
+2. Update the HTTP action URL to `https://nmrk.jayd.ai/api/cu5/start-scrape`
 3. Add header: `x-api-key` = your API_KEY
 4. Trigger the flow manually
 5. Verify:
@@ -230,20 +230,20 @@ If Power Automate flows are configured:
 
 ```bash
 # Verify API key protection works
-curl -s https://nmrk-jayd.ai/api/cu5/start-scrape -X POST | jq
+curl -s https://nmrk.jayd.ai/api/cu5/start-scrape -X POST | jq
 # Should return: {"error": "Invalid or missing API key"} (401)
 
 # Verify version endpoint is public (no key needed)
-curl -s https://nmrk-jayd.ai/api/cu5/version | jq
+curl -s https://nmrk.jayd.ai/api/cu5/version | jq
 # Should return: {"agent": "cu5-veille-presse", "status": "ok"}
 
 # Verify HTTPS redirect
-curl -s -o /dev/null -w "%{http_code}" http://nmrk-jayd.ai/
+curl -s -o /dev/null -w "%{http_code}" http://nmrk.jayd.ai/
 # Should return: 301
 
 # Verify TLS certificate
-curl -vI https://nmrk-jayd.ai/ 2>&1 | grep "subject:"
-# Should show: subject: CN=nmrk-jayd.ai
+curl -vI https://nmrk.jayd.ai/ 2>&1 | grep "subject:"
+# Should show: subject: CN=nmrk.jayd.ai
 ```
 
 ---
@@ -262,7 +262,7 @@ curl -vI https://nmrk-jayd.ai/ 2>&1 | grep "subject:"
 
 ### MSAL login redirects to wrong URL
 - Check App Registration redirect URIs in Azure Portal → App registrations → Jaydai Platform → Authentication
-- Must include `https://nmrk-jayd.ai`
+- Must include `https://nmrk.jayd.ai`
 
 ### Business Immo scraping returns 0 articles
 - Check credentials in `.env`: `BUSINESS_IMO_EMAIL` and `BUSINESS_IMO_PASSWORD`
