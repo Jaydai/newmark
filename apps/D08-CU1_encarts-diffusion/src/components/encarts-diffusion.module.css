@@ -1,0 +1,735 @@
+.page {
+  min-height: 100%;
+  padding: 32px 24px 56px;
+  background:
+    radial-gradient(circle at top left, rgba(249, 115, 22, 0.14), transparent 28%),
+    linear-gradient(180deg, #f7fafc 0%, #eef3f8 100%);
+}
+
+.hero {
+  max-width: 1200px;
+  margin: 0 auto 24px;
+  padding: 28px 32px;
+  border-radius: 28px;
+  background:
+    linear-gradient(135deg, rgba(21, 45, 71, 0.96), rgba(31, 71, 110, 0.92)),
+    #16314d;
+  color: #fff;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.14);
+  display: flex;
+  gap: 24px;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+.eyebrow,
+.panelEyebrow {
+  margin: 0 0 10px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.eyebrow {
+  color: #fdba74;
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(2rem, 3vw, 3rem);
+  line-height: 1.02;
+}
+
+.description {
+  max-width: 720px;
+  margin: 12px 0 0;
+  font-size: 15px;
+  line-height: 1.65;
+  color: rgba(235, 244, 251, 0.92);
+}
+
+.heroMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.heroMeta span {
+  padding: 10px 12px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: rgba(255, 255, 255, 0.1);
+  color: #f8fafc;
+}
+
+.shell {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(340px, 420px) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.editorPanel,
+.previewPanel {
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.08);
+  backdrop-filter: blur(16px);
+}
+
+.editorPanel {
+  position: sticky;
+  top: 88px;
+  padding: 24px;
+}
+
+.previewPanel {
+  padding: 24px;
+}
+
+.panelHeader,
+.previewHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.panelActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.panelEyebrow {
+  color: #f97316;
+}
+
+.panelTitle {
+  margin: 0;
+  font-size: 1.15rem;
+  color: #10243a;
+}
+
+.previewHint {
+  margin: 2px 0 0;
+  max-width: 240px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #64748b;
+  text-align: right;
+}
+
+.editorSection {
+  padding: 18px;
+  margin-bottom: 18px;
+  border-radius: 22px;
+  border: 1px solid #f2cfaf;
+  background: linear-gradient(180deg, #fffaf4, #fff4ea);
+}
+
+.syncBanner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 18px;
+  margin-bottom: 18px;
+  border-radius: 22px;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  background: linear-gradient(180deg, #f8fbff, #eff5fb);
+}
+
+.syncCopy {
+  min-width: 0;
+}
+
+.syncTitle {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #0f2741;
+}
+
+.syncDetail {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #52657b;
+  word-break: break-word;
+}
+
+.syncBadge {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.syncReady {
+  background: #e7f7ee;
+  color: #147a45;
+}
+
+.syncSyncing {
+  background: #e6f0fb;
+  color: #1d4e89;
+}
+
+.syncError {
+  background: #fff0ee;
+  color: #b42318;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #9a3412;
+}
+
+.sectionToggle {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.sectionToggleIcon {
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #9a3412;
+}
+
+.sectionBody {
+  margin-top: 14px;
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.fieldGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.fieldGroup label,
+.inlineLabel span {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.inlineLabel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.fieldGroup input,
+.fieldGroup textarea,
+.addForm input,
+.contactFields input {
+  width: 100%;
+  border: 1px solid #d4dde7;
+  border-radius: 16px;
+  background: #fbfdff;
+  padding: 12px 14px;
+  font: inherit;
+  color: #10243a;
+  outline: none;
+}
+
+.fieldGroup textarea {
+  min-height: 92px;
+  resize: vertical;
+}
+
+.fieldGroup input:focus,
+.fieldGroup textarea:focus,
+.addForm input:focus,
+.contactFields input:focus {
+  border-color: #f97316;
+  box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.12);
+}
+
+.contactsList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.contactCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid #d7e0ea;
+  border-radius: 16px;
+  background: #fbfdff;
+  overflow: hidden;
+}
+
+.contactCardSelected {
+  border-color: #fdba74;
+  background: linear-gradient(180deg, #fffaf4, #fff4ea);
+}
+
+.contactRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+}
+
+.checkboxButton {
+  width: 76px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.checkbox {
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border: 1px solid #d5b8a3;
+  color: #f97316;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.contactState {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #7c5d4a;
+}
+
+.contactSummary {
+  min-width: 0;
+  flex: 1;
+}
+
+.contactName {
+  margin: 0 0 2px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #10243a;
+}
+
+.compactIconButton {
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 999px;
+  background: #eef2f6;
+  color: #64748b;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+
+.contactActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+
+.contactFields {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 12px 12px 98px;
+}
+
+.contactDetails {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.35;
+  color: #5f7389;
+  word-break: break-word;
+}
+
+.deleteButton,
+.ghostButton,
+.secondaryButton,
+.primaryButton,
+.exportButton {
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+}
+
+.deleteButton {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  background: #eef2f6;
+  color: #64748b;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ghostButton,
+.secondaryButton,
+.primaryButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 999px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ghostButton {
+  background: #eef2f6;
+  color: #334155;
+}
+
+.secondaryButton {
+  width: 100%;
+  background: #fff7ed;
+  color: #c2410c;
+  border: 1px dashed #fb923c;
+}
+
+.primaryButton {
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  color: #fff;
+}
+
+.addForm {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 20px;
+  border: 1px solid #f2cfaf;
+  background: linear-gradient(180deg, #fffaf4, #fff4ea);
+}
+
+.formActions {
+  display: flex;
+  gap: 10px;
+}
+
+.exportButton {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 18px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #0f2741, #163c61);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.exportButton:disabled {
+  opacity: 0.72;
+  cursor: wait;
+}
+
+.loadingState {
+  max-width: 420px;
+  margin: 64px auto 0;
+  padding: 28px 32px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: #10243a;
+  font-weight: 700;
+}
+
+.loadingSpinner {
+  animation: spin 1s linear infinite;
+}
+
+.previewStage {
+  padding: 16px;
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at top, rgba(249, 115, 22, 0.14), transparent 32%),
+    linear-gradient(180deg, #e6edf5 0%, #dce6f0 100%);
+  display: flex;
+  justify-content: center;
+  overflow: auto;
+}
+
+.flyer {
+  width: min(100%, 640px);
+  background: linear-gradient(180deg, #16314d 0%, #18385a 100%);
+  color: #fff;
+  border-radius: 28px;
+  box-shadow: 0 30px 70px rgba(15, 23, 42, 0.22);
+  overflow: hidden;
+}
+
+.flyerHeader {
+  padding: 36px 42px 22px;
+}
+
+.logo {
+  width: 180px;
+  height: auto;
+  display: block;
+  margin-bottom: 26px;
+}
+
+.salutation,
+.intro,
+.closing,
+.cordiality,
+.contactTail,
+.contactLine,
+.reference {
+  margin: 0;
+}
+
+.salutation {
+  font-size: 13.5px;
+  color: #d8eef9;
+  margin-bottom: 12px;
+  white-space: pre-line;
+}
+
+.intro,
+.closing {
+  font-size: 13.5px;
+  line-height: 1.62;
+  color: #edf8ff;
+  white-space: pre-line;
+}
+
+.addressBlock {
+  padding: 22px 42px 8px;
+  text-align: center;
+}
+
+.addressText {
+  min-height: 42px;
+  color: #62dbff;
+  font-size: 31px;
+  font-weight: 700;
+  line-height: 1.22;
+  white-space: pre-line;
+}
+
+.infoBlock {
+  padding: 10px 42px 12px;
+  text-align: center;
+}
+
+.infoText {
+  min-height: 22px;
+  color: #77e4ff;
+  font-size: 13.5px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  line-height: 1.6;
+  text-transform: uppercase;
+  white-space: pre-line;
+}
+
+.contactsBlock {
+  padding: 16px 42px 10px;
+}
+
+.contactLine {
+  color: #7ae6ff;
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1.7;
+}
+
+.contactTail {
+  margin-top: 4px;
+  color: #d9eef9;
+  font-size: 12.5px;
+  line-height: 1.6;
+  white-space: pre-line;
+}
+
+.flyerFooter {
+  padding: 16px 42px 32px;
+}
+
+.cordiality {
+  margin-top: 12px;
+  font-size: 12.5px;
+  color: #d9eef9;
+  white-space: pre-line;
+}
+
+.reference {
+  margin-top: 12px;
+  text-align: right;
+  font-size: 12.5px;
+  font-style: italic;
+  color: #62dbff;
+  white-space: pre-line;
+}
+
+.placeholder {
+  opacity: 0.42;
+  font-style: italic;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 1024px) {
+  .shell {
+    grid-template-columns: 1fr;
+  }
+
+  .editorPanel {
+    position: static;
+  }
+}
+
+@media (max-width: 720px) {
+  .page {
+    padding: 20px 14px 40px;
+  }
+
+  .hero,
+  .editorPanel,
+  .previewPanel {
+    border-radius: 22px;
+  }
+
+  .hero {
+    padding: 24px 20px;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .heroMeta {
+    justify-content: flex-start;
+  }
+
+  .previewHeader,
+  .panelHeader,
+  .panelActions,
+  .formActions,
+  .fieldGrid {
+    flex-direction: column;
+    grid-template-columns: 1fr;
+  }
+
+  .previewHint {
+    text-align: left;
+  }
+
+  .syncBanner {
+    flex-direction: column;
+  }
+
+  .syncBadge {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .previewStage {
+    padding: 12px;
+  }
+
+  .checkboxButton {
+    width: auto;
+  }
+
+  .contactRow {
+    align-items: flex-start;
+  }
+
+  .contactFields {
+    padding: 0 12px 12px;
+  }
+
+  .contactActions {
+    margin-left: auto;
+  }
+
+  .flyerHeader,
+  .addressBlock,
+  .infoBlock,
+  .contactsBlock,
+  .flyerFooter {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+
+  .addressText {
+    font-size: 24px;
+  }
+}

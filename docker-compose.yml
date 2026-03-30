@@ -1,0 +1,80 @@
+services:
+  # ─── Reverse proxy + static file server ───
+  nginx:
+    image: nginx:1.27-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/sites:/etc/nginx/sites:ro
+      - ./certbot/conf:/etc/letsencrypt:ro
+      - ./certbot/www:/var/www/certbot:ro
+      # Static app builds (mount each app's out/ directory)
+      - ./apps/D00_hub/out:/srv/hub:ro
+      - ./apps/D08-CU6_dashboard-offres/out:/srv/dashboard:ro
+      - ./apps/D09-CU5_carte-commercialisation/out:/srv/commercialisation:ro
+      - ./apps/D09-CU5_carte-transactions/out:/srv/transactions:ro
+      - ./apps/D05-CU1_carte-offre-retail/out:/srv/offre-retail:ro
+      - ./apps/D04-CU6_planning-visites/out:/srv/visites:ro
+      - ./apps/D09-CU8_comparables/out:/srv/comparables:ro
+      - ./apps/D05-CU4_recherche-proprietaire/out:/srv/proprietaire:ro
+      - ./apps/D08-CU1_encarts-diffusion/out:/srv/encarts:ro
+      - ./apps/D06-CU8_feuilles-temps-graphistes/out:/srv/graphistes:ro
+    depends_on:
+      - cu5-agent
+      - cu1-agent
+      - cu4-agent
+    restart: unless-stopped
+
+  # ─── Let's Encrypt certificate renewal ───
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    restart: unless-stopped
+
+  # ─── Agent: CU5 — Veille Presse (Business Immo scraper) ───
+  cu5-agent:
+    build:
+      context: .
+      dockerfile: agents/cu5-veille-presse/Dockerfile
+    env_file: .env
+    mem_limit: 2g
+    restart: unless-stopped
+
+  # ─── Agent: CU1 — Lecture Presse → Excel ───
+  cu1-agent:
+    build:
+      context: .
+      dockerfile: agents/cu1-lecture-presse/Dockerfile
+    env_file: .env
+    mem_limit: 2g
+    restart: unless-stopped
+
+  # ─── Agent: CU4 — Recherche Propriétaire ───
+  cu4-agent:
+    build:
+      context: .
+      dockerfile: agents/cu4-recherche-proprietaire/Dockerfile
+    env_file: .env
+    mem_limit: 2g
+    restart: unless-stopped
+
+  # ─── Cron scheduler (replaces Azure Functions timer trigger) ───
+  ofelia:
+    image: mcuadros/ofelia:latest
+    depends_on:
+      - cu5-agent
+    command: daemon --docker
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    labels:
+      ofelia.enabled: "true"
+      # CU5: scrape Business Immo at 6 AM UTC, Monday-Friday
+      ofelia.job-exec.cu5-scrape.schedule: "0 6 * * 1-5"
+      ofelia.job-exec.cu5-scrape.container: "cu5-agent"
+      ofelia.job-exec.cu5-scrape.command: "curl -s -X POST http://localhost:8000/start-scrape"
+    restart: unless-stopped

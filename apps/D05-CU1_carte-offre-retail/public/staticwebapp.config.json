@@ -1,0 +1,20 @@
+{
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": ["*.{js,css,html,json,png,jpg,svg,ico,xlsx}"]
+  },
+  "routes": [
+    {
+      "route": "/api/transactions/hash",
+      "rewrite": "/data/transactions-hash.json"
+    },
+    {
+      "route": "/api/transactions",
+      "rewrite": "/data/transactions.json"
+    }
+  ],
+  "globalHeaders": {
+    "X-Frame-Options": "DENY",
+    "X-Content-Type-Options": "nosniff"
+  }
+}

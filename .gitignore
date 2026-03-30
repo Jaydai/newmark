@@ -1,0 +1,9 @@
+.env
+node_modules/
+out/
+.next/
+__pycache__/
+*.pyc
+dist/
+certbot/
+acme.json

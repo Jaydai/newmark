@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "newmark-common"
+version = "0.1.0"
+description = "Shared utilities for Newmark AI agents"
+requires-python = ">=3.11"
+dependencies = [
+    "requests",
+    "beautifulsoup4",
+    "playwright",
+    "azure-data-tables",
+    "openai>=1.30.0",
+]
+
+[project.optional-dependencies]
+dev = ["python-dotenv"]

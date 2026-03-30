@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Verify Bubbles</title>
+  <style>
+    body { font-family: sans-serif; margin: 0; padding: 16px; background: #f3f4f6; }
+    #status { margin-bottom: 12px; font-weight: 600; }
+    #metrics { white-space: pre-wrap; background: #fff; border: 1px solid #d1d5db; border-radius: 8px; padding: 12px; margin-bottom: 12px; }
+    iframe { width: 1400px; height: 900px; border: 1px solid #d1d5db; background: #fff; }
+  </style>
+</head>
+<body>
+  <div id="status">Booting…</div>
+  <div id="metrics"></div>
+  <iframe id="app" src="/transactions"></iframe>
+  <script>
+    const statusEl = document.getElementById("status");
+    const metricsEl = document.getElementById("metrics");
+    const iframe = document.getElementById("app");
+
+    function waitFor(condition, timeoutMs) {
+      return new Promise((resolve, reject) => {
+        const start = Date.now();
+        const tick = () => {
+          try {
+            const value = condition();
+            if (value) return resolve(value);
+          } catch (error) {}
+          if (Date.now() - start > timeoutMs) return reject(new Error("timeout"));
+          setTimeout(tick, 100);
+        };
+        tick();
+      });
+    }
+
+    function getMarkerCenters(doc, sceneRect) {
+      return Array.from(doc.querySelectorAll(".leaflet-marker-pane .leaflet-marker-icon"))
+        .map((el) => {
+          const rect = el.getBoundingClientRect();
+          if (!rect.width || !rect.height) return null;
+          return {
+            x: rect.left + rect.width / 2 - sceneRect.left,
+            y: rect.top + rect.height / 2 - sceneRect.top,
+          };
+        })
+        .filter(Boolean);
+    }
+
+    function nearestDistance(point, others) {
+      if (!others.length) return null;
+      return others.reduce((best, current) => {
+        const dx = point.x - current.x;
+        const dy = point.y - current.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        return Math.min(best, dist);
+      }, Number.POSITIVE_INFINITY);
+    }
+
+    iframe.addEventListener("load", async () => {
+      const doc = iframe.contentDocument;
+
+      try {
+        statusEl.textContent = "Waiting for UI…";
+        await waitFor(() => Array.from(doc.querySelectorAll("button")).find((button) => button.textContent.includes("Bulles")), 20000);
+
+        const bubblesButton = Array.from(doc.querySelectorAll("button")).find((button) => button.textContent.includes("Bulles"));
+        if (!bubblesButton) throw new Error("Bulles button not found");
+
+        statusEl.textContent = "Switching to bubbles…";
+        bubblesButton.click();
+
+        const scene = await waitFor(() => doc.querySelector("[data-tx-bubble-scene]"), 20000);
+        await waitFor(() => scene.querySelector("[data-tx-bubble-card]") || scene.textContent.includes("Aucune transaction"), 20000);
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+
+        const mapEl = doc.querySelector("#leaflet-map .leaflet-container");
+        if (!mapEl) throw new Error("Map element not found");
+
+        const mapRect = mapEl.getBoundingClientRect();
+        const sceneRect = scene.getBoundingClientRect();
+        const dots = Array.from(scene.querySelectorAll("circle[r='4']"));
+        const markerCenters = getMarkerCenters(doc, sceneRect);
+        const dotDistances = dots.map((dot) => ({
+          x: Number(dot.getAttribute("cx") || "0"),
+          y: Number(dot.getAttribute("cy") || "0"),
+        })).map((point) => nearestDistance(point, markerCenters)).filter((value) => value != null);
+
+        const result = {
+          sceneRect: { left: sceneRect.left, top: sceneRect.top, width: sceneRect.width, height: sceneRect.height },
+          mapRect: { left: mapRect.left, top: mapRect.top, width: mapRect.width, height: mapRect.height },
+          offset: {
+            left: Math.round(sceneRect.left - mapRect.left),
+            top: Math.round(sceneRect.top - mapRect.top),
+            right: Math.round(sceneRect.right - mapRect.right),
+            bottom: Math.round(sceneRect.bottom - mapRect.bottom),
+          },
+          markers: markerCenters.length,
+          dots: dots.length,
+          maxDotDistance: dotDistances.length ? Math.max.apply(null, dotDistances).toFixed(2) : null,
+          avgDotDistance: dotDistances.length ? (dotDistances.reduce((a, b) => a + b, 0) / dotDistances.length).toFixed(2) : null,
+          bubbleCards: scene.querySelectorAll("[data-tx-bubble-card]").length,
+          ok:
+            Math.abs(sceneRect.left - mapRect.left) <= 1 &&
+            Math.abs(sceneRect.top - mapRect.top) <= 1 &&
+            Math.abs(sceneRect.right - mapRect.right) <= 1 &&
+            Math.abs(sceneRect.bottom - mapRect.bottom) <= 1 &&
+            dotDistances.every((value) => value <= 2.5),
+        };
+
+        statusEl.textContent = result.ok ? "Alignment OK" : "Alignment mismatch";
+        metricsEl.textContent = JSON.stringify(result, null, 2);
+        document.body.dataset.result = JSON.stringify(result);
+      } catch (error) {
+        statusEl.textContent = "Verification failed";
+        metricsEl.textContent = String(error && error.message ? error.message : error);
+        document.body.dataset.error = metricsEl.textContent;
+      }
+    });
+  </script>
+</body>
+</html>

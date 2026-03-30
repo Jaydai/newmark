@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Planning Visites Export Check</title>
+<style>
+  body { font-family: system-ui, sans-serif; margin: 0; background: #111; color: #f5f5f5; }
+  .status { padding: 12px 16px; font-size: 14px; }
+  .ok { color: #83f28f; }
+  .err { color: #ff8a8a; }
+  iframe { width: 1440px; height: 960px; border: 0; background: #fff; display: block; }
+</style>
+</head>
+<body>
+<div class="status" id="status">Boot…</div>
+<iframe id="appFrame" title="Planning visites export check"></iframe>
+<script>
+(async function () {
+  const statusEl = document.getElementById("status");
+  const frame = document.getElementById("appFrame");
+  const params = new URLSearchParams(location.search);
+  const mode = params.get("mode") || "bubbles";
+  const target = params.get("target") || "/";
+
+  function setStatus(text, ok) {
+    statusEl.className = "status " + (ok === false ? "err" : ok ? "ok" : "");
+    statusEl.textContent = text;
+  }
+
+  function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  async function waitUntil(fn, timeoutMs, stepMs) {
+    const started = Date.now();
+    while (Date.now() - started < timeoutMs) {
+      const value = await fn();
+      if (value) return value;
+      await sleep(stepMs || 100);
+    }
+    throw new Error("Timed out");
+  }
+
+  try {
+    frame.src = target;
+    await new Promise((resolve, reject) => {
+      frame.onload = resolve;
+      frame.onerror = reject;
+    });
+
+    const win = frame.contentWindow;
+    const doc = win.document;
+
+    setStatus("Waiting for page…");
+    await waitUntil(
+      () => doc.querySelector("[data-sidebar]") && doc.querySelector("#__map_el"),
+      20000,
+      150
+    );
+
+    setStatus("Waiting for default visits…");
+    await waitUntil(() => doc.body.textContent.indexOf("Bureau Haussmann") >= 0, 30000, 200);
+
+    if (mode === "bubbles") {
+      const bubbleBtn = Array.from(doc.querySelectorAll("button")).find((button) =>
+        /Bulles/.test(button.textContent || "")
+      );
+      if (!bubbleBtn) throw new Error("Bubble mode unavailable");
+      bubbleBtn.click();
+      await sleep(1400);
+    }
+
+    setStatus("Waiting for map render…");
+    await waitUntil(() => doc.querySelector("[data-map-root]"), 15000, 150);
+
+    const exportBtn = await waitUntil(
+      () => Array.from(doc.querySelectorAll("button")).find((button) => /Exporter en PNG/.test(button.textContent || "")),
+      15000,
+      150
+    );
+
+    let downloadMeta = null;
+    let blobUrl = null;
+    const proto = win.HTMLAnchorElement && win.HTMLAnchorElement.prototype;
+    const originalClick = proto && proto.click;
+    const originalCreateObjectUrl = win.URL && win.URL.createObjectURL;
+    if (proto && originalClick) {
+      proto.click = function () {
+        downloadMeta = {
+          download: this.download || "",
+          href: this.href || ""
+        };
+      };
+    }
+    if (win.URL && originalCreateObjectUrl) {
+      win.URL.createObjectURL = function () {
+        blobUrl = originalCreateObjectUrl.apply(this, arguments);
+        return blobUrl;
+      };
+    }
+
+    try {
+      setStatus("Running export…");
+      exportBtn.click();
+
+      const result = await waitUntil(() => {
+        const toast = doc.querySelector("[role='status']");
+        if (!toast) return false;
+        const text = (toast.textContent || "").trim();
+        if (!text) return false;
+        if (text.indexOf("Image exportée") >= 0) return { ok: true, text: text };
+        if (text.indexOf("✕") === 0 || text.indexOf("✗") === 0 || text.indexOf("×") === 0) {
+          return { ok: false, text: text };
+        }
+        return false;
+      }, 20000, 200);
+      if (!result.ok) {
+        throw new Error(result.text);
+      }
+
+      const downloadLabel = downloadMeta && downloadMeta.download
+        ? downloadMeta.download
+        : blobUrl
+          ? "blob export captured"
+          : "toast success only";
+      setStatus("OK " + mode + " -> " + downloadLabel + " / " + result.text, true);
+      document.body.dataset.result = "ok";
+      if (downloadMeta && downloadMeta.download) {
+        document.body.dataset.download = downloadMeta.download;
+      }
+    } finally {
+      if (proto && originalClick) proto.click = originalClick;
+      if (win.URL && originalCreateObjectUrl) win.URL.createObjectURL = originalCreateObjectUrl;
+    }
+  } catch (err) {
+    setStatus("FAIL " + mode + " -> " + err.message, false);
+    document.body.dataset.result = "fail";
+  }
+})();
+</script>
+</body>
+</html>
