@@ -17,6 +17,7 @@ bash "$REPO_ROOT/scripts/sync-env.sh"
 
 echo -e "\n${BLUE}━━━ Step 2: Build all apps ━━━${NC}\n"
 
+# Static apps only (encarts + graphistes are standalone — built by Docker)
 APPS=(
   D00_hub
   D08-CU6_dashboard-offres
@@ -26,8 +27,6 @@ APPS=(
   D04-CU6_planning-visites
   D09-CU8_comparables
   D05-CU4_recherche-proprietaire
-  D08-CU1_encarts-diffusion
-  D06-CU8_feuilles-temps-graphistes
 )
 
 for app in "${APPS[@]}"; do

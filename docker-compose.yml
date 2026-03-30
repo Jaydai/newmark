@@ -17,12 +17,26 @@ services:
       - ./apps/D04-CU6_planning-visites/out:/srv/visites:ro
       - ./apps/D09-CU8_comparables/out:/srv/comparables:ro
       - ./apps/D05-CU4_recherche-proprietaire/out:/srv/proprietaire:ro
-      - ./apps/D08-CU1_encarts-diffusion/out:/srv/encarts:ro
-      - ./apps/D06-CU8_feuilles-temps-graphistes/out:/srv/graphistes:ro
     depends_on:
       - cu5-agent
       - cu1-agent
       - cu4-agent
+      - encarts-app
+      - graphistes-app
+    restart: unless-stopped
+
+  # ─── App: Encarts Diffusion (needs Node.js server — has API routes) ───
+  encarts-app:
+    build:
+      context: ./apps/D08-CU1_encarts-diffusion
+    env_file: .env
+    restart: unless-stopped
+
+  # ─── App: Feuilles Temps Graphistes (needs Node.js server — has API routes) ───
+  graphistes-app:
+    build:
+      context: ./apps/D06-CU8_feuilles-temps-graphistes
+    env_file: .env
     restart: unless-stopped
 
   # ─── Agent: CU5 — Veille Presse (Business Immo scraper) ───
