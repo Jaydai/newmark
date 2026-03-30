@@ -30,6 +30,8 @@ services:
     build:
       context: ./apps/D08-CU1_encarts-diffusion
     env_file: .env
+    volumes:
+      - encarts-data:/app/data
     restart: unless-stopped
 
   # ─── App: Feuilles Temps Graphistes (needs Node.js server — has API routes) ───
@@ -37,6 +39,8 @@ services:
     build:
       context: ./apps/D06-CU8_feuilles-temps-graphistes
     env_file: .env
+    volumes:
+      - graphistes-data:/app/data
     restart: unless-stopped
 
   # ─── Agent: CU5 — Veille Presse (Business Immo scraper) ───
@@ -81,3 +85,7 @@ services:
       ofelia.job-exec.cu5-scrape.container: "cu5-agent"
       ofelia.job-exec.cu5-scrape.command: "curl -s -X POST http://localhost:8000/start-scrape"
     restart: unless-stopped
+
+volumes:
+  encarts-data:
+  graphistes-data:
