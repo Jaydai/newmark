@@ -6,17 +6,17 @@ import {
 } from "./offre-retail-identity";
 
 const COL_MAP: { field: string; patterns: string[] }[] = [
-  { field: "ref", patterns: ["ref.", "ref", "reference", "réf", "réf."] },
+  { field: "ref", patterns: ["ref.", "ref", "reference", "réf", "réf.", "year"] },
   { field: "nego", patterns: ["nego", "négo", "negociateur", "négociateur"] },
   { field: "origine", patterns: ["origine", "origin"] },
-  { field: "typeDeBien", patterns: ["type de bien", "type bien"] },
+  { field: "typeDeBien", patterns: ["type de bien", "type bien", "type"] },
   { field: "transactionType", patterns: ["transac.", "transac", "transaction"] },
-  { field: "enseigne", patterns: ["enseigne", "marque", "brand"] },
+  { field: "enseigne", patterns: ["enseigne", "marque", "brand", "new tenant"] },
   { field: "activite", patterns: ["activite", "activité", "activity"] },
-  { field: "adresse", patterns: ["adresse", "address", "rue"] },
-  { field: "zipCode", patterns: ["cp", "code postal", "zip"] },
+  { field: "adresse", patterns: ["adresse", "address", "rue", "street"] },
+  { field: "zipCode", patterns: ["cp", "code postal", "zip", "zip code"] },
   { field: "city", patterns: ["ville", "city"] },
-  { field: "quartier", patterns: ["quartier", "zone", "secteur"] },
+  { field: "quartier", patterns: ["quartier", "zone", "secteur", "area"] },
   { field: "surface", patterns: ["surf", "surface"] },
   { field: "prix", patterns: ["prix", "price"] },
   { field: "mentionsSurPrix", patterns: ["mentions sur prix"] },
@@ -34,7 +34,7 @@ const COL_MAP: { field: string; patterns: string[] }[] = [
   { field: "paiementTaxeFonciere", patterns: ["paiement taxe fonciere", "paiement taxe foncière"] },
   { field: "honoraires", patterns: ["honoraires", "fees"] },
   { field: "occupation", patterns: ["occupation"] },
-  { field: "locataire", patterns: ["locataire", "tenant"] },
+  { field: "locataire", patterns: ["locataire", "previous tenant", "landlord"] },
   { field: "libreDate", patterns: ["libre le", "disponible le"] },
 ];
 
@@ -111,6 +111,10 @@ export async function parseOffreRetailBuffer(buffer: ArrayBuffer): Promise<Offre
   const headers = Object.keys(rows[0]);
   const colMapping: Record<string, string> = {};
   headers.forEach((h) => { const f = matchColumn(h); if (f) colMapping[h] = f; });
+  console.log("[Parser] Excel headers:", headers);
+  console.log("[Parser] Column mapping:", colMapping);
+  const unmapped = headers.filter((h) => !colMapping[h]);
+  if (unmapped.length) console.log("[Parser] Unmapped headers:", unmapped);
 
   const seenSignatures = new Map<string, number>();
 
