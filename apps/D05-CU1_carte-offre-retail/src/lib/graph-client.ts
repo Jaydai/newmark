@@ -93,48 +93,29 @@ export async function downloadFile(
 }
 
 /**
- * Encode a SharePoint sharing URL for the /shares Graph API endpoint.
- * @see https://learn.microsoft.com/en-us/graph/api/shares-get
+ * Search all accessible SharePoint sites + drives for a file by name,
+ * download it, and return the buffer + enough metadata for refresh.
  */
-function encodeSharingUrl(url: string): string {
-  const base64 = btoa(url)
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/, "");
-  return `u!${base64}`;
-}
-
-export interface SharingDriveItem {
-  id: string;
-  name: string;
-  driveId: string;
-}
-
-/**
- * Download a file directly from a SharePoint sharing URL,
- * returning both the file buffer and enough metadata for refresh.
- */
-export async function downloadFileFromSharingUrl(
+export async function findAndDownloadFile(
   msalInstance: IPublicClientApplication,
   account: AccountInfo,
-  sharingUrl: string,
-): Promise<{ buffer: ArrayBuffer; driveItem: SharingDriveItem }> {
-  const client = getGraphClient(msalInstance, account);
-  const encoded = encodeSharingUrl(sharingUrl);
+  targetFileName: string,
+): Promise<{ buffer: ArrayBuffer; driveId: string; fileId: string; fileName: string } | null> {
+  const sites = await searchSites(msalInstance, account);
 
-  const meta = await client.api(`/shares/${encoded}/driveItem`).get();
+  for (const site of sites) {
+    const drives = await getSiteDrives(msalInstance, account, site.id);
+    for (const drive of drives) {
+      const items = await listDriveItems(msalInstance, account, drive.id);
+      const match = items.find(
+        (f) => f.name.toLowerCase() === targetFileName.toLowerCase(),
+      );
+      if (match) {
+        const buffer = await downloadFile(msalInstance, account, drive.id, match.id);
+        return { buffer, driveId: drive.id, fileId: match.id, fileName: match.name };
+      }
+    }
+  }
 
-  const buffer = await client
-    .api(`/shares/${encoded}/driveItem/content`)
-    .responseType("arraybuffer" as never)
-    .get();
-
-  return {
-    buffer: buffer as ArrayBuffer,
-    driveItem: {
-      id: meta.id,
-      name: meta.name,
-      driveId: meta.parentReference?.driveId ?? "",
-    },
-  };
+  return null;
 }

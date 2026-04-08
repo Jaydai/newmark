@@ -16,7 +16,7 @@ import ImportDialog from "@/components/offre-retail/import-dialog";
 import ThemePicker from "@/components/theme-picker";
 import { ExportToast, ExportToastRef } from "@/components/export-toast";
 import { useOffreRetailStore } from "@/hooks/use-offre-retail-store";
-import { downloadFileFromSharingUrl } from "@/lib/graph-client";
+import { findAndDownloadFile } from "@/lib/graph-client";
 import { parseOffreRetailBuffer } from "@/lib/parse-offre-retail-xlsx";
 import {
   downloadCanvasAsPng,
@@ -30,8 +30,7 @@ import {
 import type { OffreRetail, ViewMode } from "@/lib/types";
 import { hasCoords } from "@/lib/geocode";
 
-const DEFAULT_SP_URL =
-  "https://jaydai.sharepoint.com/:x:/r/_layouts/15/doc2.aspx?sourcedoc=%7BB705595B-AECE-48B1-8CD7-6906E09B1AA3%7D&file=Retail%20-%20listing%20des%20transactions.xlsx&action=default&mobileredirect=true";
+const DEFAULT_FILE_NAME = "Retail - listing des transactions.xlsx";
 
 export default function OffreRetailPage() {
   const store = useOffreRetailStore();
@@ -153,15 +152,17 @@ export default function OffreRetailPage() {
 
     (async () => {
       try {
-        const { buffer, driveItem } = await downloadFileFromSharingUrl(
-          instance, account, DEFAULT_SP_URL,
-        );
-        const parsed = await parseOffreRetailBuffer(buffer);
+        const result = await findAndDownloadFile(instance, account, DEFAULT_FILE_NAME);
+        if (!result) {
+          console.warn("[AutoLoad] Fichier par défaut introuvable");
+          return;
+        }
+        const parsed = await parseOffreRetailBuffer(result.buffer);
         if (parsed.length > 0) {
           store.setSpFileRef({
-            driveId: driveItem.driveId,
-            fileId: driveItem.id,
-            fileName: driveItem.name,
+            driveId: result.driveId,
+            fileId: result.fileId,
+            fileName: result.fileName,
           });
           store.replaceImportedItems(parsed);
           setFitTrigger((n) => n + 1);
