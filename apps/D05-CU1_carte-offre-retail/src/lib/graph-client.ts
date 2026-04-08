@@ -91,3 +91,50 @@ export async function downloadFile(
     .get();
   return response as ArrayBuffer;
 }
+
+/**
+ * Encode a SharePoint sharing URL for the /shares Graph API endpoint.
+ * @see https://learn.microsoft.com/en-us/graph/api/shares-get
+ */
+function encodeSharingUrl(url: string): string {
+  const base64 = btoa(url)
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+  return `u!${base64}`;
+}
+
+export interface SharingDriveItem {
+  id: string;
+  name: string;
+  driveId: string;
+}
+
+/**
+ * Download a file directly from a SharePoint sharing URL,
+ * returning both the file buffer and enough metadata for refresh.
+ */
+export async function downloadFileFromSharingUrl(
+  msalInstance: IPublicClientApplication,
+  account: AccountInfo,
+  sharingUrl: string,
+): Promise<{ buffer: ArrayBuffer; driveItem: SharingDriveItem }> {
+  const client = getGraphClient(msalInstance, account);
+  const encoded = encodeSharingUrl(sharingUrl);
+
+  const meta = await client.api(`/shares/${encoded}/driveItem`).get();
+
+  const buffer = await client
+    .api(`/shares/${encoded}/driveItem/content`)
+    .responseType("arraybuffer" as never)
+    .get();
+
+  return {
+    buffer: buffer as ArrayBuffer,
+    driveItem: {
+      id: meta.id,
+      name: meta.name,
+      driveId: meta.parentReference?.driveId ?? "",
+    },
+  };
+}

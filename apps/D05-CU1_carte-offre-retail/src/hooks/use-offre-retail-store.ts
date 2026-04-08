@@ -66,6 +66,7 @@ export function useOffreRetailStore() {
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [refreshError, setRefreshError] = useState<string | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
   const initialized = useRef(false);
 
   // Load from localStorage
@@ -77,6 +78,7 @@ export function useOffreRetailStore() {
       setSpFileRefState(load<SpFileRef | null>(SP_REF_KEY, null));
       setLastUpdated(load<string | null>(UPDATED_KEY, null));
       initialized.current = true;
+      setIsInitialized(true);
     }, 0);
     return () => window.clearTimeout(timer);
   }, []);
@@ -255,7 +257,7 @@ export function useOffreRetailStore() {
 
   return {
     items, filtered, addressCounts, geoCache,
-    spFileRef, lastUpdated, isRefreshing, refreshError,
+    spFileRef, lastUpdated, isRefreshing, refreshError, isInitialized,
     addressFilters, toggleAddressFilter, clearAddressFilters,
     setSpFileRef, importItems, replaceImportedItems, refresh,
     addItem, updateItem, deleteItem, toggleVisible, setAllVisible,

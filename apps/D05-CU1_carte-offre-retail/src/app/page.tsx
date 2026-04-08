@@ -16,6 +16,8 @@ import ImportDialog from "@/components/offre-retail/import-dialog";
 import ThemePicker from "@/components/theme-picker";
 import { ExportToast, ExportToastRef } from "@/components/export-toast";
 import { useOffreRetailStore } from "@/hooks/use-offre-retail-store";
+import { downloadFileFromSharingUrl } from "@/lib/graph-client";
+import { parseOffreRetailBuffer } from "@/lib/parse-offre-retail-xlsx";
 import {
   downloadCanvasAsPng,
   drawLeafletCanvasOverlayToCanvas,
@@ -27,6 +29,9 @@ import {
 } from "@/lib/leaflet-export";
 import type { OffreRetail, ViewMode } from "@/lib/types";
 import { hasCoords } from "@/lib/geocode";
+
+const DEFAULT_SP_URL =
+  "https://jaydai.sharepoint.com/:x:/r/_layouts/15/doc2.aspx?sourcedoc=%7BB705595B-AECE-48B1-8CD7-6906E09B1AA3%7D&file=Retail%20-%20listing%20des%20transactions.xlsx&action=default&mobileredirect=true";
 
 export default function OffreRetailPage() {
   const store = useOffreRetailStore();
@@ -133,6 +138,44 @@ export default function OffreRetailPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [store.items.length > 0]);
 
+  // Auto-load default SharePoint file on first visit (no data yet)
+  const autoLoadAttempted = useRef(false);
+  const [autoLoading, setAutoLoading] = useState(false);
+
+  useEffect(() => {
+    if (autoLoadAttempted.current) return;
+    if (!store.isInitialized) return;   // wait for localStorage hydration
+    if (!account || !instance) return;
+    if (store.items.length > 0) return; // already have data
+
+    autoLoadAttempted.current = true;
+    setAutoLoading(true);
+
+    (async () => {
+      try {
+        const { buffer, driveItem } = await downloadFileFromSharingUrl(
+          instance, account, DEFAULT_SP_URL,
+        );
+        const parsed = await parseOffreRetailBuffer(buffer);
+        if (parsed.length > 0) {
+          store.setSpFileRef({
+            driveId: driveItem.driveId,
+            fileId: driveItem.id,
+            fileName: driveItem.name,
+          });
+          store.replaceImportedItems(parsed);
+          setFitTrigger((n) => n + 1);
+          toastRef.current?.show(`${parsed.length} offres chargées`);
+        }
+      } catch (e) {
+        console.error("[AutoLoad] Échec du chargement par défaut :", e);
+        toastRef.current?.show("Importez un fichier manuellement");
+      } finally {
+        setAutoLoading(false);
+      }
+    })();
+  }, [store.isInitialized, account, instance, store]);
+
   const handleExportPNG = useCallback(async () => {
     const analyticsWasOpen = analyticsOpen;
     toastRef.current?.show("Préparation…");
@@ -219,6 +262,19 @@ export default function OffreRetailPage() {
           lastUpdated={store.lastUpdated}
           hasSpFileRef={store.spFileRef != null}
         />
+      )}
+
+      {autoLoading && (
+        <div
+          className="fixed z-[990] flex items-center gap-2 px-4 py-2.5 rounded-[10px] text-xs font-semibold bg-white shadow-[0_8px_24px_rgba(0,0,0,.12)]"
+          style={{
+            top: "calc(var(--bar-h) + 12px)",
+            left: `calc(${sidebarW}px + 16px)`,
+          }}
+        >
+          <div className="w-4 h-4 border-2 border-accent/30 border-t-accent rounded-full animate-spin" />
+          Chargement des données…
+        </div>
       )}
 
       <div id="leaflet-map">
