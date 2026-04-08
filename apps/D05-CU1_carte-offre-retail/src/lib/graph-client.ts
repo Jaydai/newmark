@@ -90,9 +90,9 @@ export async function downloadFile(
   // Get the pre-authenticated download URL from driveItem metadata.
   // Using /content directly causes CORS failures because the Graph API
   // returns a 302 redirect to sharepoint.com which blocks cross-origin.
+  // Do NOT use .select() — it strips the @microsoft.graph.downloadUrl annotation
   const item = await client
     .api(`/drives/${driveId}/items/${fileId}`)
-    .select("id,@microsoft.graph.downloadUrl")
     .get();
   console.log("[Graph] driveItem response keys:", Object.keys(item));
 
