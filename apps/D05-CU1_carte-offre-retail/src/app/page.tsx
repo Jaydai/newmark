@@ -168,8 +168,16 @@ export default function OffreRetailPage() {
           setFitTrigger((n) => n + 1);
           toastRef.current?.show(`${parsed.length} offres chargées`);
         }
-      } catch (e) {
-        console.error("[AutoLoad] Échec du chargement par défaut :", e);
+      } catch (e: unknown) {
+        const err = e as Error & { statusCode?: number; code?: string; body?: string };
+        console.error("[AutoLoad] Échec du chargement par défaut :", {
+          message: err.message,
+          statusCode: err.statusCode,
+          code: err.code,
+          body: err.body,
+          stack: err.stack,
+          raw: e,
+        });
         toastRef.current?.show("Importez un fichier manuellement");
       } finally {
         setAutoLoading(false);
