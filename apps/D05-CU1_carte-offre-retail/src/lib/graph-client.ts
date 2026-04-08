@@ -85,6 +85,23 @@ export async function downloadFile(
   fileId: string
 ): Promise<ArrayBuffer> {
   const client = getGraphClient(msalInstance, account);
+
+  // Get the pre-authenticated download URL from driveItem metadata.
+  // Using /content directly causes CORS failures because the Graph API
+  // returns a 302 redirect to sharepoint.com which blocks cross-origin.
+  const item = await client
+    .api(`/drives/${driveId}/items/${fileId}`)
+    .select("id,@microsoft.graph.downloadUrl")
+    .get();
+
+  const downloadUrl: string | undefined = item["@microsoft.graph.downloadUrl"];
+  if (downloadUrl) {
+    const resp = await fetch(downloadUrl);
+    if (!resp.ok) throw new Error(`Download failed: ${resp.status}`);
+    return resp.arrayBuffer();
+  }
+
+  // Fallback: try the /content endpoint directly
   const response = await client
     .api(`/drives/${driveId}/items/${fileId}/content`)
     .responseType("arraybuffer" as never)
