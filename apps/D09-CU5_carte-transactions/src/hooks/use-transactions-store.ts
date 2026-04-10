@@ -180,7 +180,12 @@ export function useTransactionsStore() {
       if (geo) return { ...base, lat: geo.lat, lng: geo.lng };
       return base;
     });
-    return [...merged, ...localAdditions];
+    const mergedLocal = localAdditions.map((tx) => {
+      const geo = geoCache[tx.id];
+      if (geo) return { ...tx, lat: geo.lat, lng: geo.lng };
+      return tx;
+    });
+    return [...merged, ...mergedLocal];
   }, [apiOverrides, apiTransactions, geoCache, localAdditions]);
 
   // Filter
