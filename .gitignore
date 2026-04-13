@@ -1,9 +1,28 @@
+# Env
 .env
+.env.local
+
+# Dependencies & build
 node_modules/
 out/
 .next/
+dist/
+tsconfig.tsbuildinfo
+
+# Python
 __pycache__/
 *.pyc
-dist/
+
+# Data (runtime SQLite, uploads, etc.)
+apps/*/data/
+
+# Infra
 certbot/
 acme.json
+
+# Windows metadata
+*:Zone.Identifier
+
+# Excel data files (import sources)
+*.xls
+*.xlsx
