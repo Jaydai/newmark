@@ -20,6 +20,7 @@ import { clsx } from "clsx";
 import type { AccountInfo, IPublicClientApplication } from "@azure/msal-browser";
 
 type SPStep = "sites" | "drives" | "files";
+type ImportSource = "sharepoint" | "local";
 
 interface ImportDialogProps {
   open: boolean;
@@ -35,8 +36,9 @@ export default function ImportDialog({ open, onClose, onImport, instance, accoun
   const [parsing, setParsing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<{ added: number; ignored: number; fileName: string } | null>(null);
+  const [source, setSource] = useState<ImportSource>(hasAuth ? "sharepoint" : "local");
 
-  // Local file fallback
+  // Local file
   const [isDragging, setIsDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -53,7 +55,7 @@ export default function ImportDialog({ open, onClose, onImport, instance, accoun
   const [searchQuery, setSearchQuery] = useState("");
   const sitesLoaded = useRef(false);
 
-  // ─── Local file handler (fallback) ───
+  // ─── Local file handler ───
   const handleBuffer = useCallback(async (buffer: ArrayBuffer, fileName: string) => {
     setParsing(true);
     setError(null);
@@ -163,25 +165,18 @@ export default function ImportDialog({ open, onClose, onImport, instance, accoun
     setResult(null);
     try {
       const buffer = await downloadFile(instance!, account!, selectedDrive.id, file.id);
-      setParsing(true);
-      const parsed = await parseOffreRetailBuffer(buffer);
-      if (parsed.length === 0) {
-        setError("Aucune offre trouvée dans ce fichier. Vérifiez les en-têtes de colonnes.");
-        return;
-      }
-      const importResult = onImport(parsed, { driveId: selectedDrive.id, fileId: file.id, fileName: file.name });
-      if (importResult.added === 0) {
-        setError("Toutes les offres de ce fichier sont déjà présentes.");
-        return;
-      }
-      setResult({ ...importResult, fileName: file.name });
+      await handleBuffer(buffer, file.name);
     } catch (e: unknown) {
       setError(`Impossible de télécharger le fichier : ${(e as Error).message}`);
-    } finally {
-      setDownloading(null);
-      setParsing(false);
-    }
-  }, [instance, account, selectedDrive, onImport, handleFolderOpen]);
+    } finally { setDownloading(null); }
+  }, [instance, account, selectedDrive, handleBuffer, handleFolderOpen]);
+
+  const handleSwitchToSharePoint = useCallback(() => {
+    setSource("sharepoint");
+    setError(null);
+    setResult(null);
+    loadSites();
+  }, [loadSites]);
 
   const handleClose = useCallback(() => {
     setResult(null);
@@ -189,13 +184,6 @@ export default function ImportDialog({ open, onClose, onImport, instance, accoun
     setParsing(false);
     onClose();
   }, [onClose]);
-
-  // Load sites on first open (SharePoint mode)
-  const hasInitRef = useRef(false);
-  if (open && !hasInitRef.current && hasAuth) {
-    hasInitRef.current = true;
-    loadSites();
-  }
 
   if (!open) return null;
 
@@ -228,6 +216,34 @@ export default function ImportDialog({ open, onClose, onImport, instance, accoun
           </button>
         </div>
 
+        {/* Source toggle */}
+        {!result && (
+          <div className="px-5 pt-4 shrink-0">
+            <div className="flex items-center gap-1 p-1 rounded-xl bg-surface-alt w-fit">
+              <button
+                onClick={() => { setSource("local"); setError(null); setResult(null); }}
+                className={clsx(
+                  "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all",
+                  source === "local" ? "bg-white text-foreground shadow-sm" : "text-text-secondary hover:text-foreground"
+                )}
+              >
+                <Upload className="w-3.5 h-3.5" /> Fichier local
+              </button>
+              <button
+                onClick={handleSwitchToSharePoint}
+                disabled={!hasAuth}
+                className={clsx(
+                  "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all",
+                  source === "sharepoint" ? "bg-white text-foreground shadow-sm" : "text-text-secondary hover:text-foreground",
+                  !hasAuth && "opacity-40 cursor-not-allowed"
+                )}
+              >
+                <Globe className="w-3.5 h-3.5" /> SharePoint
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Content */}
         <div className="flex-1 overflow-y-auto px-5 py-4">
           {/* Success result */}
@@ -252,51 +268,45 @@ export default function ImportDialog({ open, onClose, onImport, instance, accoun
             </div>
           )}
 
-          {/* No auth: local file fallback */}
-          {!hasAuth && !result && (
-            <div>
-              <div className="flex items-center gap-3 p-3 rounded-lg bg-amber-50 text-amber-700 text-xs mb-4">
-                <AlertCircle className="w-4 h-4 shrink-0" />
-                <span>SharePoint nécessite une connexion Azure AD. Importez un fichier local en attendant.</span>
-              </div>
-              <div
-                onDrop={(e) => { e.preventDefault(); setIsDragging(false); const f = e.dataTransfer.files[0]; if (f) processFile(f); }}
-                onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-                onDragLeave={(e) => { e.preventDefault(); setIsDragging(false); }}
-                onClick={() => inputRef.current?.click()}
-                className={clsx(
-                  "cursor-pointer rounded-xl border-2 border-dashed p-10 flex flex-col items-center justify-center gap-3 text-center transition-all",
-                  isDragging ? "border-accent bg-accent/5 scale-[1.01]" : "border-border hover:border-accent/50 hover:bg-surface-hover/50",
-                  parsing && "pointer-events-none opacity-60"
-                )}
-              >
-                <input ref={inputRef} type="file" accept=".xlsx,.xls" onChange={(e) => { const f = e.target.files?.[0]; if (f) processFile(f); }} className="hidden" />
-                {parsing ? (
-                  <>
-                    <div className="w-10 h-10 border-3 border-accent/30 border-t-accent rounded-full animate-spin" />
-                    <p className="text-xs text-text-secondary font-medium">Analyse en cours…</p>
-                  </>
-                ) : (
-                  <>
-                    <div className={clsx("rounded-xl p-3 transition-colors", isDragging ? "bg-accent/10" : "bg-surface-alt")}>
-                      {isDragging ? <FileSpreadsheet className="w-8 h-8 text-accent" /> : <Upload className="w-8 h-8 text-text-tertiary" />}
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-foreground mb-1">
-                        {isDragging ? "Déposez votre fichier ici" : "Glissez-déposez un fichier Excel"}
-                      </p>
-                      <p className="text-xs text-text-secondary">
-                        ou <span className="text-accent font-medium">parcourez</span> vos fichiers — .xlsx, .xls (max 50 Mo)
-                      </p>
-                    </div>
-                  </>
-                )}
-              </div>
+          {/* Local upload */}
+          {source === "local" && !result && (
+            <div
+              onDrop={(e) => { e.preventDefault(); setIsDragging(false); const f = e.dataTransfer.files[0]; if (f) processFile(f); }}
+              onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+              onDragLeave={(e) => { e.preventDefault(); setIsDragging(false); }}
+              onClick={() => inputRef.current?.click()}
+              className={clsx(
+                "cursor-pointer rounded-xl border-2 border-dashed p-10 flex flex-col items-center justify-center gap-3 text-center transition-all",
+                isDragging ? "border-accent bg-accent/5 scale-[1.01]" : "border-border hover:border-accent/50 hover:bg-surface-hover/50",
+                parsing && "pointer-events-none opacity-60"
+              )}
+            >
+              <input ref={inputRef} type="file" accept=".xlsx,.xls" onChange={(e) => { const f = e.target.files?.[0]; if (f) processFile(f); }} className="hidden" />
+              {parsing ? (
+                <>
+                  <div className="w-10 h-10 border-3 border-accent/30 border-t-accent rounded-full animate-spin" />
+                  <p className="text-xs text-text-secondary font-medium">Analyse en cours…</p>
+                </>
+              ) : (
+                <>
+                  <div className={clsx("rounded-xl p-3 transition-colors", isDragging ? "bg-accent/10" : "bg-surface-alt")}>
+                    {isDragging ? <FileSpreadsheet className="w-8 h-8 text-accent" /> : <Upload className="w-8 h-8 text-text-tertiary" />}
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground mb-1">
+                      {isDragging ? "Déposez votre fichier ici" : "Glissez-déposez un fichier Excel"}
+                    </p>
+                    <p className="text-xs text-text-secondary">
+                      ou <span className="text-accent font-medium">parcourez</span> vos fichiers — .xlsx, .xls (max 50 Mo)
+                    </p>
+                  </div>
+                </>
+              )}
             </div>
           )}
 
           {/* SharePoint browser */}
-          {hasAuth && !result && (
+          {source === "sharepoint" && !result && (
             <div className="rounded-xl border border-border overflow-hidden">
               {/* Breadcrumb */}
               <div className="flex items-center gap-1 px-4 py-2.5 border-b border-border bg-surface-alt/50 text-xs overflow-x-auto">

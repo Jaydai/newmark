@@ -32,6 +32,13 @@ function load<T>(key: string, fallback: T): T {
 }
 function save(key: string, val: unknown) { try { localStorage.setItem(key, JSON.stringify(val)); } catch {} }
 
+function extractStreetName(adresse: string): string {
+  // Take the last line (handles "Étage 0\n215 rue de la Convention")
+  const line = adresse.split(/[\r\n]+/).filter(Boolean).pop() || adresse;
+  // Strip leading house number + optional bis/ter/quater
+  return line.replace(/^\s*\d+\s*(bis|ter|quater)?\s*/i, "").trim();
+}
+
 function sanitizeItem(item: OffreRetail): OffreRetail | null {
   if (!hasMeaningfulOffreRetailData(item)) return null;
   // Compute loyerM2 if missing
@@ -108,20 +115,20 @@ export function useOffreRetailStore() {
     return items.filter((item) => {
       if (!item.visible) return false;
       if (addressFilters.length > 0) {
-        const addr = (item.adresse || "").toLowerCase();
-        if (!addressFilters.some((f) => addr.includes(f))) return false;
+        const street = extractStreetName(item.adresse || "").toLowerCase();
+        if (!addressFilters.some((f) => street === f)) return false;
       }
       return true;
     });
   }, [addressFilters, items]);
 
-  // Address counts for filter dropdown
+  // Address counts for filter dropdown (grouped by street name)
   const addressCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     items.forEach((item) => {
       if (item.adresse) {
-        const addr = item.adresse.toLowerCase();
-        counts[addr] = (counts[addr] || 0) + 1;
+        const street = extractStreetName(item.adresse).toLowerCase();
+        if (street) counts[street] = (counts[street] || 0) + 1;
       }
     });
     return counts;

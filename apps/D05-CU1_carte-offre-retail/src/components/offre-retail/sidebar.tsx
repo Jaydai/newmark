@@ -96,7 +96,7 @@ export default function ORSidebar({
                 value={searchText}
                 onChange={(e) => { setSearchText(e.target.value); setDropdownOpen(true); }}
                 onFocus={() => setDropdownOpen(true)}
-                placeholder={addressFilters.length > 0 ? "Ajouter une autre adresse…" : "Rechercher une adresse…"}
+                placeholder={addressFilters.length > 0 ? "Ajouter une autre rue…" : "Rechercher une rue…"}
                 className="w-full border-none outline-none text-xs bg-transparent"
               />
             </div>
@@ -124,7 +124,7 @@ export default function ORSidebar({
                 }}
                 className="w-full text-left px-3 py-2 text-xs hover:bg-surface-hover transition-colors flex justify-between border-b border-border"
               >
-                <span className="font-semibold">Toutes les adresses</span>
+                <span className="font-semibold">Toutes les rues</span>
                 <span className="text-text-tertiary">{items.length}</span>
               </button>
               {addresses.length === 0 ? (
