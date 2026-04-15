@@ -26,7 +26,6 @@ APPS=(
   D05-CU1_carte-offre-retail
   D04-CU6_planning-visites
   D09-CU8_comparables
-  D05-CU4_recherche-proprietaire
 )
 
 for app in "${APPS[@]}"; do

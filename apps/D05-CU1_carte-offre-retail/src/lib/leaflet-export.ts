@@ -166,15 +166,14 @@ export function drawLeafletMarkersToCanvas(ctx: CanvasRenderingContext2D, mapEl:
     }
 
     const inner = outer.firstElementChild instanceof HTMLElement ? outer.firstElementChild : null;
-    const innerStyles = inner ? getComputedStyle(inner) : null;
-    const innerRadius = inner
-      ? (Number.parseFloat(innerStyles?.width || "0") || radius * 0.6) / 2
-      : radius * 0.3;
-
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, innerRadius, 0, Math.PI * 2);
-    ctx.fillStyle = innerStyles?.backgroundColor || "#ffffff";
-    ctx.fill();
+    if (inner) {
+      const innerStyles = getComputedStyle(inner);
+      const innerRadius = (Number.parseFloat(innerStyles.width || "0") || radius * 0.6) / 2;
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, innerRadius, 0, Math.PI * 2);
+      ctx.fillStyle = innerStyles.backgroundColor || "#ffffff";
+      ctx.fill();
+    }
 
     ctx.restore();
   });

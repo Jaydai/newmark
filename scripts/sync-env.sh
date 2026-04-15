@@ -64,7 +64,6 @@ write_env "D09-CU5_carte-transactions"      "NEXT_PUBLIC_HUB_URL=$BASE"
 write_env "D05-CU1_carte-offre-retail"      "NEXT_PUBLIC_HUB_URL=$BASE"
 write_env "D04-CU6_planning-visites"        "NEXT_PUBLIC_HUB_URL=$BASE"
 write_env "D09-CU8_comparables"
-write_env "D05-CU4_recherche-proprietaire"  "NEXT_PUBLIC_API_URL=$BASE/api/cu4"
 write_env "D08-CU1_encarts-diffusion"
 write_env "D06-CU8_feuilles-temps-graphistes"
 

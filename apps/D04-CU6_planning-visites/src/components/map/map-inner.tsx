@@ -153,7 +153,6 @@ export default function MapInner({
       center={[48.8566, 2.3522]}
       zoom={13}
       zoomControl={false}
-      preferCanvas
       className="absolute inset-0"
       data-map-root
       style={{

@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { Newspaper, Mail, Search, FileSpreadsheet } from "lucide-react";
+import { Newspaper, Mail, FileSpreadsheet } from "lucide-react";
 import type { Status } from "./use-cases";
 
 export interface Agent {
@@ -39,19 +39,6 @@ export const agents: Agent[] = [
     icon: Mail,
     color: "#8b5cf6",
     tech: ["Python", "OpenAI", "Azure Functions"],
-  },
-  {
-    id: "D05-CU4",
-    name: "Recherche Proprietaire",
-    direction: "D05",
-    directionName: "Retail Leasing",
-    description:
-      "Identification des proprietaires via Pappers Immo et La Place de l'Immobilier. Remonte la chaine de propriete jusqu'a l'UBO.",
-    status: "in_progress",
-    icon: Search,
-    color: "#ec4899",
-    tech: ["Python", "Playwright", "Pappers API", "Azure Functions"],
-    url: process.env.NEXT_PUBLIC_URL_PROPRIETAIRE || "",
   },
   {
     id: "D07-CU1",

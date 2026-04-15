@@ -16,11 +16,9 @@ services:
       - ./apps/D05-CU1_carte-offre-retail/out:/srv/offre-retail:ro
       - ./apps/D04-CU6_planning-visites/out:/srv/visites:ro
       - ./apps/D09-CU8_comparables/out:/srv/comparables:ro
-      - ./apps/D05-CU4_recherche-proprietaire/out:/srv/proprietaire:ro
     depends_on:
       - cu5-agent
       - cu1-agent
-      - cu4-agent
       - encarts-app
       - graphistes-app
     restart: unless-stopped
@@ -57,15 +55,6 @@ services:
     build:
       context: .
       dockerfile: agents/cu1-lecture-presse/Dockerfile
-    env_file: .env
-    mem_limit: 2g
-    restart: unless-stopped
-
-  # ─── Agent: CU4 — Recherche Propriétaire ───
-  cu4-agent:
-    build:
-      context: .
-      dockerfile: agents/cu4-recherche-proprietaire/Dockerfile
     env_file: .env
     mem_limit: 2g
     restart: unless-stopped

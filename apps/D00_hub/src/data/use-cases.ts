@@ -1,6 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import {
-  BarChart3, Map, Calendar, GitCompareArrows, Search,
+  BarChart3, Map, Calendar, GitCompareArrows,
   Building2, TrendingUp, Briefcase, ShoppingBag, Megaphone,
   BookOpen, Database, Users,
 } from "lucide-react";
@@ -43,7 +43,6 @@ const URLS = {
   offreRetail: process.env.NEXT_PUBLIC_URL_OFFRE_RETAIL || "",
   visites: process.env.NEXT_PUBLIC_URL_VISITES || "",
   comparables: process.env.NEXT_PUBLIC_URL_COMPARABLES || "",
-  proprietaire: process.env.NEXT_PUBLIC_URL_PROPRIETAIRE || "",
 };
 
 export const deployedApps: DeployedApp[] = [
@@ -102,15 +101,6 @@ export const deployedApps: DeployedApp[] = [
     icon: GitCompareArrows,
     color: "#d97706",
     direction: "D09",
-    access: "external",
-  },
-  {
-    name: "Recherche Proprietaire",
-    description: "Identification des proprietaires via Pappers et La Place",
-    href: URLS.proprietaire,
-    icon: Search,
-    color: "#dc2626",
-    direction: "D05",
     access: "external",
   },
   {

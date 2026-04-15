@@ -25,8 +25,12 @@ import {
   drawLeafletTooltipsToCanvas,
   rasterizeLeafletSvgOverlay,
   renderLeafletTilesToCanvas,
-  waitForExportFonts,
 } from "@/lib/leaflet-export";
+import {
+  getOffreRetailForBubbleExport,
+  renderOrBubbleOverlayCanvas,
+  waitForExportFonts,
+} from "@/lib/bubble-export";
 import type { OffreRetail, ViewMode } from "@/lib/types";
 import { hasCoords } from "@/lib/geocode";
 
@@ -212,8 +216,74 @@ export default function OffreRetailPage() {
       drawLeafletMarkersToCanvas(tileCtx, mapEl);
       await drawLeafletTooltipsToCanvas(tileCtx, mapEl);
 
+      const mapRect = mapEl.getBoundingClientRect();
+      const S = 2;
       const filename = `Newmark_Offre_Retail_${new Date().toISOString().slice(0, 10)}.png`;
-      await downloadCanvasAsPng(tileCanvas, filename);
+
+      if (view === "bubbles") {
+        toastRef.current?.show("Rendu des bulles…");
+        const scene = document.querySelector<HTMLElement>("[data-or-bubble-scene]");
+        if (!scene) throw new Error("Scène des bulles introuvable");
+        const map = mapRef.current;
+        if (!map) throw new Error("Carte introuvable");
+
+        const sceneRect = scene.getBoundingClientRect();
+        const exportWidth = Math.round(sceneRect.width);
+        const exportHeight = Math.round(sceneRect.height);
+        const cards = Array.from(scene.querySelectorAll<HTMLElement>("[data-or-bubble-card]"));
+        const cardState = cards.map((card) => ({
+          animation: card.style.animation,
+          opacity: card.style.opacity,
+        }));
+
+        cards.forEach((card) => {
+          card.style.animation = "none";
+          card.style.opacity = "1";
+        });
+
+        let bubbleCanvas: HTMLCanvasElement;
+        try {
+          await new Promise((resolve) => window.setTimeout(resolve, 50));
+          const { shown, total } = getOffreRetailForBubbleExport(store.filtered, map);
+          bubbleCanvas = renderOrBubbleOverlayCanvas({
+            scene,
+            items: shown,
+            overflowCount: Math.max(0, total - shown.length),
+            scale: S,
+          });
+        } finally {
+          cards.forEach((card, index) => {
+            card.style.animation = cardState[index].animation;
+            card.style.opacity = cardState[index].opacity;
+          });
+        }
+
+        const bubbleOutput = document.createElement("canvas");
+        bubbleOutput.width = exportWidth * S;
+        bubbleOutput.height = exportHeight * S;
+        const bubbleOutputCtx = bubbleOutput.getContext("2d");
+        if (!bubbleOutputCtx) throw new Error("Export bulles impossible");
+
+        bubbleOutputCtx.fillStyle = "#ffffff";
+        bubbleOutputCtx.fillRect(0, 0, bubbleOutput.width, bubbleOutput.height);
+        bubbleOutputCtx.drawImage(
+          tileCanvas,
+          Math.max(0, Math.round((sceneRect.left - mapRect.left) * S)),
+          Math.max(0, Math.round((sceneRect.top - mapRect.top) * S)),
+          exportWidth * S,
+          exportHeight * S,
+          0,
+          0,
+          exportWidth * S,
+          exportHeight * S
+        );
+        bubbleOutputCtx.drawImage(bubbleCanvas, 0, 0);
+
+        await downloadCanvasAsPng(bubbleOutput, filename);
+      } else {
+        await downloadCanvasAsPng(tileCanvas, filename);
+      }
+
       toastRef.current?.show("✓ Image exportée !");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Erreur";
@@ -223,7 +293,7 @@ export default function OffreRetailPage() {
         setAnalyticsOpen(true);
       }
     }
-  }, [analyticsOpen]);
+  }, [analyticsOpen, store.filtered, view]);
 
   return (
     <AuthGuard>

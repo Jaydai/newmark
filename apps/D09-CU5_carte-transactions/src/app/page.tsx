@@ -346,21 +346,6 @@ export default function TransactionsPage() {
         themePickerSlot={<ThemePicker />}
       />
 
-      {(store.fetchError || store.pollWarning) && (
-        <div
-          className={`fixed z-[980] px-3.5 py-2.5 rounded-[10px] text-xs font-semibold shadow-[0_8px_24px_rgba(0,0,0,.12)] ${
-            store.fetchError ? "bg-danger-bg text-danger" : "bg-[#fff3cd] text-[#8a6d3b]"
-          }`}
-          style={{
-            top: "calc(var(--bar-h) + 12px)",
-            left: `calc(${sidebarW}px + 16px)`,
-            right: `${analyticsW + 96}px`,
-          }}
-        >
-          {store.fetchError || store.pollWarning}
-        </div>
-      )}
-
       {view === "map" && (
         <TxSidebar
           transactions={store.transactions}
