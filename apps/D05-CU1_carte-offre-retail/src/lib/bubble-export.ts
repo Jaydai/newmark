@@ -515,9 +515,19 @@ export function renderOrBubbleOverlayCanvas({
   const { canvas, ctx } = createScaledCanvas(sceneRect.width, sceneRect.height, scale);
   const theme = getExportTheme();
 
+  const svgEl = scene.querySelector("svg");
+  console.log("[BubbleExport] scene", { w: sceneRect.width, h: sceneRect.height, svgFound: !!svgEl, svgLines: svgEl?.querySelectorAll("line").length ?? 0, svgCircles: svgEl?.querySelectorAll("circle").length ?? 0 });
+
   drawSceneSvgOverlay(ctx, scene);
 
   const cards = Array.from(scene.querySelectorAll<HTMLElement>("[data-or-bubble-card]"));
+  console.log("[BubbleExport] cards", { count: cards.length, itemsCount: items.length });
+  if (cards.length > 0) {
+    const firstCard = cards[0];
+    const firstRect = firstCard.getBoundingClientRect();
+    const hasBadge = !!firstCard.querySelector(".or-bub-badge");
+    console.log("[BubbleExport] firstCard", { left: firstRect.left, top: firstRect.top, w: firstRect.width, h: firstRect.height, relLeft: firstRect.left - sceneRect.left, relTop: firstRect.top - sceneRect.top, hasBadge, opacity: firstCard.style.opacity, animation: firstCard.style.animation });
+  }
   if (!cards.length) {
     const message = scene.innerText.replace(/\s+/g, " ").trim();
     if (message) {

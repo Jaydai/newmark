@@ -231,6 +231,9 @@ export default function OffreRetailPage() {
         const exportWidth = Math.round(sceneRect.width);
         const exportHeight = Math.round(sceneRect.height);
         const cards = Array.from(scene.querySelectorAll<HTMLElement>("[data-or-bubble-card]"));
+
+        console.log("[ExportPNG] bubble mode", { view, exportWidth, exportHeight, cardsInDOM: cards.length, sceneRect: { left: sceneRect.left, top: sceneRect.top, width: sceneRect.width, height: sceneRect.height }, mapRect: { left: mapRect.left, top: mapRect.top, width: mapRect.width, height: mapRect.height } });
+
         const cardState = cards.map((card) => ({
           animation: card.style.animation,
           opacity: card.style.opacity,
@@ -245,12 +248,14 @@ export default function OffreRetailPage() {
         try {
           await new Promise((resolve) => window.setTimeout(resolve, 50));
           const { shown, total } = getOffreRetailForBubbleExport(store.filtered, map);
+          console.log("[ExportPNG] bubble data", { shownCount: shown.length, total, filteredCount: store.filtered.length });
           bubbleCanvas = renderOrBubbleOverlayCanvas({
             scene,
             items: shown,
             overflowCount: Math.max(0, total - shown.length),
             scale: S,
           });
+          console.log("[ExportPNG] bubbleCanvas", { width: bubbleCanvas.width, height: bubbleCanvas.height });
         } finally {
           cards.forEach((card, index) => {
             card.style.animation = cardState[index].animation;
@@ -266,14 +271,15 @@ export default function OffreRetailPage() {
 
         bubbleOutputCtx.fillStyle = "#ffffff";
         bubbleOutputCtx.fillRect(0, 0, bubbleOutput.width, bubbleOutput.height);
+        const sx = Math.max(0, Math.round((sceneRect.left - mapRect.left) * S));
+        const sy = Math.max(0, Math.round((sceneRect.top - mapRect.top) * S));
+        console.log("[ExportPNG] compositing", { sx, sy, tileW: tileCanvas.width, tileH: tileCanvas.height, outW: bubbleOutput.width, outH: bubbleOutput.height });
         bubbleOutputCtx.drawImage(
           tileCanvas,
-          Math.max(0, Math.round((sceneRect.left - mapRect.left) * S)),
-          Math.max(0, Math.round((sceneRect.top - mapRect.top) * S)),
+          sx, sy,
           exportWidth * S,
           exportHeight * S,
-          0,
-          0,
+          0, 0,
           exportWidth * S,
           exportHeight * S
         );
